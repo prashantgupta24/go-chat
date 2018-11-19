@@ -10,11 +10,11 @@ import (
 
 func main() {
 	fmt.Println("starting")
-	http.Handle("/", http.FileServer(http.Dir("src/static")))
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 	//http.HandleFunc("/", server.HTTPHandler)
 	http.HandleFunc("/ws", server.WSHandler)
 
-	err := http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(":8001", nil)
 	if err != nil {
 		log.Fatal("error starting server: ", err)
 	}

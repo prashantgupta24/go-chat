@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"bytes"
 	"log"
 	"net/http"
 
@@ -24,28 +24,30 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Unable to start websockets : %v ", err)
 	}
-	defer conn.Close()
+	//defer conn.Close()
 
 	Messages := make(chan []byte)
-	// writer, err := conn.NextWriter(websocket.TextMessage)
+	//writer, err := conn.NextWriter(websocket.TextMessage)
 
 	// if err != nil {
 	// 	log.Fatalf("Unable to create writer : %v", err)
 	// 	return
 	// }
-	go listen(Messages, nil, conn)
+	go listen(Messages, conn)
 
-	for {
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Printf("error: %v", err)
-			break
+	go func() {
+		for {
+			_, message, err := conn.ReadMessage()
+			if err != nil {
+				log.Fatalf("unable to read message from web socket: %v", err)
+				break
+			}
+			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+			//writer.Write(message)
+			Messages <- message
 		}
+	}()
 
-		//fmt.Println(message)
-		//w.Write(message)
-		Messages <- message
-	}
 	// for {
 	// 	// Read in a new message as JSON and map it to a Message object
 	// 	//err := conn.ReadJSON(&msg)
@@ -61,5 +63,14 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func HTTPHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to my website!")
+	log.Println(r.URL)
+	if r.URL.Path != "/" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "/home.html")
 }
