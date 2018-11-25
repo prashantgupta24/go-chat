@@ -14,9 +14,12 @@ func main() {
 	//http.HandleFunc("/", server.HTTPHandler)
 	http.HandleFunc("/ws", server.WSHandler)
 
-	err := http.ListenAndServe(":8001", nil)
+	hub := server.CreateHub()
+	server.SetHub(hub)
+
+	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
 		log.Fatal("error starting server: ", err)
 	}
-	log.Println("http server started on :8000")
+	fmt.Println("http server started on :8000")
 }
