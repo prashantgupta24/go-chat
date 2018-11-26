@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,18 +9,19 @@ import (
 	"github.com/go-chat/src/server"
 )
 
+var addr = flag.String("addr", ":8000", "http service address")
+
 func main() {
-	fmt.Println("starting")
-	http.Handle("/", http.FileServer(http.Dir("./static")))
-	//http.HandleFunc("/", server.HTTPHandler)
-	http.HandleFunc("/ws", server.WSHandler)
-
+	flag.Parse()
+	fmt.Printf("Starting chat server on port%v. Waiting for connections ... \n\n", *addr)
 	hub := server.CreateHub()
-	server.SetHub(hub)
+	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		server.WSHandler(hub, w, r)
+	})
 
-	err := http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("error starting server: ", err)
 	}
-	fmt.Println("http server started on :8000")
 }

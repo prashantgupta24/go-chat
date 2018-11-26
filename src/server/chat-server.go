@@ -1,14 +1,11 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
-
-var hub *Hub
 
 var (
 	newline = []byte{'\n'}
@@ -20,22 +17,17 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func SetHub(h *Hub) {
-	hub = h
-	go hub.register()
-}
-
 //WSHandler handles web socket connections
-func WSHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Starting new web socket connection!")
-
+func WSHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatalf("Unable to start websockets : %v ", err)
 	}
-	//defer conn.Close()
-	//
-	hub.ConnChan <- conn
+	connection := &Connection{
+		name: "",
+		conn: conn,
+	}
+	hub.register <- connection
 	go hub.read(conn)
 	go hub.write()
 
@@ -52,16 +44,3 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 	// 	// broadcast <- msg
 	// }
 }
-
-// func HTTPHandler(w http.ResponseWriter, r *http.Request) {
-// 	log.Println(r.URL)
-// 	if r.URL.Path != "/" {
-// 		http.Error(w, "Not found", http.StatusNotFound)
-// 		return
-// 	}
-// 	if r.Method != "GET" {
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
-// 	http.ServeFile(w, r, "/home.html")
-// }
