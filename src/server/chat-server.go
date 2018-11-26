@@ -1,11 +1,15 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+)
+
+var (
+	newline = []byte{'\n'}
+	space   = []byte{' '}
 )
 
 var upgrader = websocket.Upgrader{
@@ -13,21 +17,20 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func WSHandler(w http.ResponseWriter, r *http.Request) {
+//WSHandler handles web socket connections
+func WSHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatalf("Unable to start websockets : %v ", err)
 	}
-	defer conn.Close()
-
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			log.Printf("error: %v", err)
-			break
-		}
-
+	connection := &Connection{
+		name: "",
+		conn: conn,
 	}
+	hub.register <- connection
+	go hub.read(conn)
+	go hub.write()
+
 	// for {
 	// 	// Read in a new message as JSON and map it to a Message object
 	// 	//err := conn.ReadJSON(&msg)
@@ -40,12 +43,4 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 	// 	// // Send the newly received message to the broadcast channel
 	// 	// broadcast <- msg
 	// }
-}
-
-func HTTPHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to my website!")
-}
-
-//StartServer starts the websocket server
-func StartServer() {
 }

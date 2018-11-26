@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <head>
     <title>Chat Example</title>
     <script type="text/javascript">
@@ -38,7 +38,6 @@
                 };
                 conn.onmessage = function (evt) {
                     var messages = evt.data.split('\n');
-                    alert(messages)
                     for (var i = 0; i < messages.length; i++) {
                         var item = document.createElement("div");
                         item.innerText = messages[i];
