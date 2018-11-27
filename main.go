@@ -14,10 +14,10 @@ var addr = flag.String("addr", ":8000", "http service address")
 func main() {
 	flag.Parse()
 	fmt.Printf("Starting chat server on port%v. Waiting for connections ... \n\n", *addr)
-	hub := server.CreateHub()
+	chatServer := server.CreateChatServer()
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		server.WSHandler(hub, w, r)
+		server.WSHandler(chatServer, w, r)
 	})
 
 	err := http.ListenAndServe(*addr, nil)
