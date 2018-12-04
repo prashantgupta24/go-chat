@@ -23,11 +23,13 @@ func WSHandler(server Server, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Unable to start websockets : %v ", err)
 	}
-	connection := &Connection{
-		name: "",
-		conn: conn,
-	}
-	server.Register(connection)
+
+	//id, _ := shortid.Generate()
+	// connection := &Connection{
+	// 	name: "",
+	// 	conn: conn,
+	// }
+	// server.Register(connection)
 	go server.Read(conn)
 	go server.Write()
 

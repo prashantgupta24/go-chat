@@ -20,12 +20,18 @@ type MyChatServer struct {
 
 //Message is the core component of all messages being passed around in the chat server
 type Message struct {
-	sender *string
-	data   *[]byte
+	sender string
+	data   string
 }
 
 //Connection is used for handling the various web socket connections
 type Connection struct {
 	name string
 	conn *websocket.Conn
+}
+
+//MessageJSON is used for deconstructing json
+type MessageJSON struct {
+	Type    string `json:"type"`
+	Message string `json:"message"`
 }
