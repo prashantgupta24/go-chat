@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
@@ -40,7 +41,7 @@ func startUnregisterChannel(myServer *MyChatServer) {
 			conn.Close()
 			myServer.messages <- &MessageJSON{
 				Sender:  myServer.clients[conn],
-				Message: "",
+				Message: strconv.Itoa(len(myServer.clients) - 1),
 				MsgType: UNREGISTER,
 			}
 			fmt.Printf("Closing connection with %v, connections remaining : %v \n\n", myServer.clients[conn], len(myServer.clients)-1)
@@ -62,7 +63,7 @@ func (s *MyChatServer) Read(conn *websocket.Conn) {
 			fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", messageJSON.Message, len(s.clients))
 			s.messages <- &MessageJSON{
 				Sender:  messageJSON.Sender,
-				Message: "",
+				Message: strconv.Itoa(len(s.clients)),
 				MsgType: REGISTER,
 			}
 		} else {

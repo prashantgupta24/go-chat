@@ -2,7 +2,7 @@
 <html lang="en">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <head>
-    <title>Chat Example</title>
+    <title>My Chat Server</title>
     <script type="text/javascript">
         window.onload = function () {
             let usernameField = document.getElementById("username");
@@ -68,12 +68,12 @@
                     if (messageReceivedJSON.type == "reg" ) {
                         console.log("received reg->" + evt.data)
                         let item = document.createElement("div");
-                        item.innerText = "**** " + messageReceivedJSON.sender + " **** joined ";
+                        item.innerText = "**** " + messageReceivedJSON.sender + " **** joined. Total participants : " + messageReceivedJSON.message;
                         appendLog(item);
                     } else if (messageReceivedJSON.type == "unreg") {
                         console.log("received unreg->" + evt.data)
                         let item = document.createElement("div");
-                        item.innerText = "**** " + messageReceivedJSON.sender + " **** left ";
+                        item.innerText = "**** " + messageReceivedJSON.sender + " **** left. Total participants : " + messageReceivedJSON.message;
                         appendLog(item);
                     } else {
                         console.log("received msg->" + evt.data)
