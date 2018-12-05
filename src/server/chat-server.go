@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	REGISTRATION = "reg"
-	MESSAGE      = "msg"
+	REGISTER   = "reg"
+	UNREGISTER = "unreg"
+	MESSAGE    = "msg"
 )
 
 //CreateChatServer creates a chat server instance
@@ -37,6 +38,11 @@ func startUnregisterChannel(myServer *MyChatServer) {
 	for conn := range myServer.unregister {
 		if _, ok := myServer.clients[conn]; ok {
 			conn.Close()
+			myServer.messages <- &MessageJSON{
+				Sender:  myServer.clients[conn],
+				Message: "",
+				MsgType: UNREGISTER,
+			}
 			fmt.Printf("Closing connection with %v, connections remaining : %v \n\n", myServer.clients[conn], len(myServer.clients)-1)
 			delete(myServer.clients, conn)
 		}
@@ -51,9 +57,14 @@ func (s *MyChatServer) Read(conn *websocket.Conn) {
 			log.Printf("error while parsing json message: %v", err)
 			break
 		}
-		if messageJSON.MsgType == REGISTRATION {
+		if messageJSON.MsgType == REGISTER {
 			s.clients[conn] = messageJSON.Sender
 			fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", messageJSON.Message, len(s.clients))
+			s.messages <- &MessageJSON{
+				Sender:  messageJSON.Sender,
+				Message: "",
+				MsgType: REGISTER,
+			}
 		} else {
 			fmt.Printf("Reading %v from %v \n", messageJSON.Message, messageJSON.Sender)
 			messageToSend := bytes.TrimSpace(bytes.Replace([]byte(messageJSON.Message), newline, space, -1))

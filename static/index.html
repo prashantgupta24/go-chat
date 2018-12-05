@@ -31,11 +31,6 @@
                 if (!msg.value) {
                     return false;
                 }
-                // if (!username.value) {
-                //     alert("Please enter a username!")
-                //     username.focus()
-                //     return false
-                // }
                 let messageToSend = {
                     type: "msg",
                     sender: usernameField.value,
@@ -43,7 +38,7 @@
                     date: Date.now()
                 };
                 conn.send(JSON.stringify(messageToSend))
-                console.log(JSON.stringify(messageToSend))
+                console.log("Sending msg : " + JSON.stringify(messageToSend))
                 msg.value = "";
                 return false;
             };
@@ -59,7 +54,8 @@
                         date: Date.now()
                     };
                     conn.send(JSON.stringify(messageToSend))
-                    console.log(JSON.stringify(messageToSend))
+                    console.log("Sending reg : " + JSON.stringify(messageToSend))
+                    msg.focus()
                 };
 
                 conn.onclose = function (evt) {
@@ -68,17 +64,24 @@
                     appendLog(item);
                 };
                 conn.onmessage = function (evt) {
-                    console.log("received ->" + evt.data)
                     let messageReceivedJSON = JSON.parse(evt.data);
-                    let item = document.createElement("div");
-                    item.innerText = "< " + messageReceivedJSON.sender + " > : " + messageReceivedJSON.message;
-                    appendLog(item);
-                    //let messages = messageReceivedJSON.split('\n');
-                    // for (let i = 0; i < messages.length; i++) {
-                    //     let item = document.createElement("div");
-                    //     item.innerText = "<"+messageReceivedJSON.sender + "> :" + messages[i];
-                    //     appendLog(item);
-                    // }
+                    if (messageReceivedJSON.type == "reg" ) {
+                        console.log("received reg->" + evt.data)
+                        let item = document.createElement("div");
+                        item.innerText = "**** " + messageReceivedJSON.sender + " **** joined ";
+                        appendLog(item);
+                    } else if (messageReceivedJSON.type == "unreg") {
+                        console.log("received unreg->" + evt.data)
+                        let item = document.createElement("div");
+                        item.innerText = "**** " + messageReceivedJSON.sender + " **** left ";
+                        appendLog(item);
+                    } else {
+                        console.log("received msg->" + evt.data)
+                        let item = document.createElement("div");
+                        item.innerText = "< " + messageReceivedJSON.sender + " > : " + messageReceivedJSON.message;
+                        appendLog(item);
+                        
+                    }
                 };
             } else {
                 let item = document.createElement("div");
