@@ -1,46 +1,100 @@
 package server
 
 import (
+	"bytes"
+	"fmt"
 	"log"
-	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
 
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
+const (
+	REGISTER   = "reg"
+	UNREGISTER = "unreg"
+	MESSAGE    = "msg"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+//CreateChatServer creates a chat server instance
+func CreateChatServer() Server {
+	myServer := &MyChatServer{
+		clients:    make(map[*websocket.Conn]string),
+		messages:   make(chan *MessageJSON),
+		register:   make(chan *Connection),
+		unregister: make(chan *websocket.Conn),
+	}
+	//go startRegisterChannel(myServer)
+	go startUnregisterChannel(myServer)
+	return myServer
 }
 
-//WSHandler handles web socket connections
-func WSHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatalf("Unable to start websockets : %v ", err)
-	}
-	connection := &Connection{
-		name: "",
-		conn: conn,
-	}
-	hub.register <- connection
-	go hub.read(conn)
-	go hub.write()
+// func startRegisterChannel(myServer *MyChatServer) {
+// 	for connection := range myServer.register {
+// 		myServer.clients[connection.conn] = connection.name
+// 		fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", connection.name, len(myServer.clients))
+// 	}
+// }
 
-	// for {
-	// 	// Read in a new message as JSON and map it to a Message object
-	// 	//err := conn.ReadJSON(&msg)
-	// 	messageType, msg, err := conn.ReadMessage()
-	// 	if err != nil {
-	// 		log.Printf("error: %v", err)
-	// 		break
-	// 	}
-	// 	fmt.Printf("Message %v received with %v type", msg, messageType)
-	// 	// // Send the newly received message to the broadcast channel
-	// 	// broadcast <- msg
-	// }
+func startUnregisterChannel(myServer *MyChatServer) {
+	for conn := range myServer.unregister {
+		if _, ok := myServer.clients[conn]; ok {
+			conn.Close()
+			myServer.messages <- &MessageJSON{
+				Sender:  myServer.clients[conn],
+				Message: strconv.Itoa(len(myServer.clients) - 1),
+				MsgType: UNREGISTER,
+			}
+			fmt.Printf("Closing connection with %v, connections remaining : %v \n\n", myServer.clients[conn], len(myServer.clients)-1)
+			delete(myServer.clients, conn)
+		}
+	}
+}
+
+func (s *MyChatServer) Read(conn *websocket.Conn) {
+	for {
+		var messageJSON MessageJSON
+		err := conn.ReadJSON(&messageJSON)
+		if err != nil {
+			log.Printf("error while parsing json message: %v", err)
+			break
+		}
+		if messageJSON.MsgType == REGISTER {
+			s.clients[conn] = messageJSON.Sender
+			fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", messageJSON.Message, len(s.clients))
+			s.messages <- &MessageJSON{
+				Sender:  messageJSON.Sender,
+				Message: strconv.Itoa(len(s.clients)),
+				MsgType: REGISTER,
+			}
+		} else {
+			fmt.Printf("Reading %v from %v \n", messageJSON.Message, messageJSON.Sender)
+			messageToSend := bytes.TrimSpace(bytes.Replace([]byte(messageJSON.Message), newline, space, -1))
+			s.messages <- &MessageJSON{
+				Sender:  messageJSON.Sender,
+				Message: string(messageToSend),
+				MsgType: MESSAGE,
+			}
+		}
+	}
+	s.unregister <- conn
+}
+
+func (s *MyChatServer) Write() {
+
+	for message := range s.messages {
+		for conn := range s.clients {
+			err := conn.WriteJSON(message)
+			if err != nil {
+				log.Printf("Unable to write for client: %v Error: %v \n\n", s.clients[conn], err)
+				return
+			}
+		}
+
+	}
+
+}
+
+//Register function adds the connection to the chat server
+func (s *MyChatServer) Register(connection *Connection) {
+	s.register <- connection
 }
