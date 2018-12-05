@@ -24,25 +24,6 @@ func WSHandler(server Server, w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Unable to start websockets : %v ", err)
 	}
 
-	//id, _ := shortid.Generate()
-	// connection := &Connection{
-	// 	name: "",
-	// 	conn: conn,
-	// }
-	// server.Register(connection)
 	go server.Read(conn)
 	go server.Write()
-
-	// for {
-	// 	// Read in a new message as JSON and map it to a Message object
-	// 	//err := conn.ReadJSON(&msg)
-	// 	messageType, msg, err := conn.ReadMessage()
-	// 	if err != nil {
-	// 		log.Printf("error: %v", err)
-	// 		break
-	// 	}
-	// 	fmt.Printf("Message %v received with %v type", msg, messageType)
-	// 	// // Send the newly received message to the broadcast channel
-	// 	// broadcast <- msg
-	// }
 }

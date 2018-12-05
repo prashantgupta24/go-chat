@@ -38,6 +38,7 @@
                 // }
                 let messageToSend = {
                     type: "msg",
+                    sender: usernameField.value,
                     message: msg.value,
                     date: Date.now()
                 };
@@ -53,7 +54,8 @@
                 conn.onopen = function (event) {
                     let messageToSend = {
                         type: "reg",
-                        message: usernameField.value,
+                        sender: usernameField.value,
+                        message: "",
                         date: Date.now()
                     };
                     conn.send(JSON.stringify(messageToSend))
@@ -67,14 +69,16 @@
                 };
                 conn.onmessage = function (evt) {
                     console.log("received ->" + evt.data)
-                    let messageReceived = JSON.parse(evt.data);
-                    console.log("received ->" + messageReceived)
-                    let messages = evt.data.split('\n');
-                    for (let i = 0; i < messages.length; i++) {
-                        let item = document.createElement("div");
-                        item.innerText = messages[i];
-                        appendLog(item);
-                    }
+                    let messageReceivedJSON = JSON.parse(evt.data);
+                    let item = document.createElement("div");
+                    item.innerText = "< " + messageReceivedJSON.sender + " > : " + messageReceivedJSON.message;
+                    appendLog(item);
+                    //let messages = messageReceivedJSON.split('\n');
+                    // for (let i = 0; i < messages.length; i++) {
+                    //     let item = document.createElement("div");
+                    //     item.innerText = "<"+messageReceivedJSON.sender + "> :" + messages[i];
+                    //     appendLog(item);
+                    // }
                 };
             } else {
                 let item = document.createElement("div");

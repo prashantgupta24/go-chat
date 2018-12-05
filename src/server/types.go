@@ -12,16 +12,10 @@ type Server interface {
 //MyChatServer is an implementation of the chat server interface
 type MyChatServer struct {
 	clients    map[*websocket.Conn]string
-	messages   chan *Message
+	messages   chan *MessageJSON
 	register   chan *Connection
 	unregister chan *websocket.Conn
 	clientNum  int
-}
-
-//Message is the core component of all messages being passed around in the chat server
-type Message struct {
-	sender string
-	data   string
 }
 
 //Connection is used for handling the various web socket connections
@@ -30,8 +24,9 @@ type Connection struct {
 	conn *websocket.Conn
 }
 
-//MessageJSON is used for deconstructing json
+//MessageJSON is the core component of all messages being passed around in the chat server
 type MessageJSON struct {
-	Type    string `json:"type"`
+	MsgType string `json:"type"`
+	Sender  string `json:"sender"`
 	Message string `json:"message"`
 }
