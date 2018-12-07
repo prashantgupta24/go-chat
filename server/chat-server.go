@@ -18,9 +18,9 @@ const (
 //CreateChatServer creates a chat server instance
 func CreateChatServer() Server {
 	myServer := &MyChatServer{
-		clients:    make(map[*websocket.Conn]string),
-		messages:   make(chan *MessageJSON),
-		register:   make(chan *Connection),
+		clients:  make(map[*websocket.Conn]string),
+		messages: make(chan *MessageJSON),
+		//register:   make(chan *Connection),
 		unregister: make(chan *websocket.Conn),
 	}
 	//go startRegisterChannel(myServer)
@@ -37,7 +37,7 @@ func CreateChatServer() Server {
 
 func startUnregisterChannel(myServer *MyChatServer) {
 	for conn := range myServer.unregister {
-		if _, ok := myServer.clients[conn]; ok {
+		if _, ok := myServer.GetClients()[conn]; conn != nil && ok {
 			conn.Close()
 			myServer.messages <- &MessageJSON{
 				Sender:  myServer.clients[conn],
@@ -50,16 +50,18 @@ func startUnregisterChannel(myServer *MyChatServer) {
 	}
 }
 
-func (s *MyChatServer) Read(conn *websocket.Conn) {
+func (s *MyChatServer) Read(conn Connection) {
+	wbConnection := conn.GetConn()
 	for {
-		var messageJSON MessageJSON
-		err := conn.ReadJSON(&messageJSON)
+		//var messageJSON MessageJSON
+		messageRead, err := conn.Read()
 		if err != nil {
 			log.Printf("error while parsing json message: %v", err)
 			break
 		}
+		messageJSON := messageRead.(*MessageJSON)
 		if messageJSON.MsgType == REGISTER {
-			s.clients[conn] = messageJSON.Sender
+			s.clients[wbConnection] = messageJSON.Sender
 			fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", messageJSON.Message, len(s.clients))
 			s.messages <- &MessageJSON{
 				Sender:  messageJSON.Sender,
@@ -76,7 +78,7 @@ func (s *MyChatServer) Read(conn *websocket.Conn) {
 			}
 		}
 	}
-	s.unregister <- conn
+	s.unregister <- wbConnection
 }
 
 func (s *MyChatServer) Write() {
@@ -94,7 +96,17 @@ func (s *MyChatServer) Write() {
 
 }
 
-//Register function adds the connection to the chat server
-func (s *MyChatServer) Register(connection *Connection) {
-	s.register <- connection
+//GetMessagesChan retrieves the messages chan
+func (s *MyChatServer) GetMessagesChan() chan *MessageJSON {
+	return s.messages
 }
+
+//GetClients retrieves the clients
+func (s *MyChatServer) GetClients() map[*websocket.Conn]string {
+	return s.clients
+}
+
+//Register function adds the connection to the chat server
+// func (s *MyChatServer) Register(connection *Connection) {
+// 	s.register <- connection
+// }

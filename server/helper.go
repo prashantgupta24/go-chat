@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -24,6 +25,24 @@ func WSHandler(server Server, w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Unable to start websockets : %v ", err)
 	}
 
-	go server.Read(conn)
+	connectionStruct := &ConnectionStruct{
+		conn: conn,
+	}
+	go server.Read(connectionStruct)
 	go server.Write()
+}
+
+//GetConn function
+func (c *ConnectionStruct) GetConn() *websocket.Conn {
+	return c.conn
+}
+
+//Read function
+func (c *ConnectionStruct) Read() (interface{}, error) {
+	var i interface{}
+	err := c.conn.ReadJSON(&i)
+	if i == nil {
+		return nil, errors.New("error while parsing")
+	}
+	return i, err
 }

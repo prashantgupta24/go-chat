@@ -4,22 +4,29 @@ import "github.com/gorilla/websocket"
 
 //Server is the main chat server interface
 type Server interface {
-	Read(*websocket.Conn)
+	Read(Connection)
 	Write()
-	Register(*Connection)
+	GetMessagesChan() chan *MessageJSON
+	GetClients() map[*websocket.Conn]string
+	//Register(*Connection)
 }
 
 //MyChatServer is an implementation of the chat server interface
 type MyChatServer struct {
-	clients    map[*websocket.Conn]string
-	messages   chan *MessageJSON
-	register   chan *Connection
+	clients  map[*websocket.Conn]string
+	messages chan *MessageJSON
+	//register   chan *Connection
 	unregister chan *websocket.Conn
 	clientNum  int
 }
 
-//Connection is used for handling the various web socket connections
-type Connection struct {
+type Connection interface {
+	GetConn() *websocket.Conn
+	Read() (interface{}, error)
+}
+
+//ConnectionStruct is used for handling the various web socket connections
+type ConnectionStruct struct {
 	name string
 	conn *websocket.Conn
 }
