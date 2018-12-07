@@ -54,12 +54,11 @@ func (s *MyChatServer) Read(conn Connection) {
 	wbConnection := conn.GetConn()
 	for {
 		//var messageJSON MessageJSON
-		messageRead, err := conn.Read()
+		messageJSON, err := conn.Read()
 		if err != nil {
 			log.Printf("error while parsing json message: %v", err)
 			break
 		}
-		messageJSON := messageRead.(*MessageJSON)
 		if messageJSON.MsgType == REGISTER {
 			s.clients[wbConnection] = messageJSON.Sender
 			fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", messageJSON.Message, len(s.clients))

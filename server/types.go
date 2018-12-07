@@ -22,7 +22,7 @@ type MyChatServer struct {
 
 type Connection interface {
 	GetConn() *websocket.Conn
-	Read() (interface{}, error)
+	Read() (*MessageJSON, error)
 }
 
 //ConnectionStruct is used for handling the various web socket connections

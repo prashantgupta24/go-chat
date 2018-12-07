@@ -38,8 +38,8 @@ func (c *ConnectionStruct) GetConn() *websocket.Conn {
 }
 
 //Read function
-func (c *ConnectionStruct) Read() (interface{}, error) {
-	var i interface{}
+func (c *ConnectionStruct) Read() (*MessageJSON, error) {
+	var i *MessageJSON
 	err := c.conn.ReadJSON(&i)
 	if i == nil {
 		return nil, errors.New("error while parsing")

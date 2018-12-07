@@ -5,6 +5,7 @@
 package mock_service
 
 import (
+	server "github.com/go-chat/server"
 	gomock "github.com/golang/mock/gomock"
 	websocket "github.com/gorilla/websocket"
 	reflect "reflect"
@@ -46,9 +47,9 @@ func (mr *MockConnectionMockRecorder) GetConn() *gomock.Call {
 }
 
 // Read mocks base method
-func (m *MockConnection) Read() (interface{}, error) {
+func (m *MockConnection) Read() (*server.MessageJSON, error) {
 	ret := m.ctrl.Call(m, "Read")
-	ret0, _ := ret[0].(interface{})
+	ret0, _ := ret[0].(*server.MessageJSON)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
