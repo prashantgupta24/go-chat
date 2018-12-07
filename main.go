@@ -15,7 +15,8 @@ func main() {
 	flag.Parse()
 	fmt.Printf("Starting chat server on port%v. Waiting for connections ... \n\n", *addr)
 	chatServer := server.CreateChatServer()
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		server.WSHandler(chatServer, w, r)
 	})
