@@ -32,8 +32,8 @@ func WSHandler(server Server, w http.ResponseWriter, r *http.Request) {
 	go server.Write()
 }
 
-//GetConn function
-func (c *ConnectionStruct) GetConn() *websocket.Conn {
+//Conn function get the connection object
+func (c *ConnectionStruct) Conn() *websocket.Conn {
 	return c.conn
 }
 

@@ -9,31 +9,24 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type messageType string
+
 const (
-	REGISTER   = "reg"
-	UNREGISTER = "unreg"
-	MESSAGE    = "msg"
+	REGISTER   messageType = "reg"
+	UNREGISTER messageType = "unreg"
+	MESSAGE    messageType = "msg"
 )
 
 //CreateChatServer creates a chat server instance
 func CreateChatServer() Server {
 	myServer := &MyChatServer{
-		clients:  make(map[*websocket.Conn]string),
-		messages: make(chan *MessageJSON),
-		//register:   make(chan *Connection),
+		clients:    make(map[*websocket.Conn]string),
+		messages:   make(chan *MessageJSON),
 		unregister: make(chan *websocket.Conn),
 	}
-	//go startRegisterChannel(myServer)
 	go startUnregisterChannel(myServer)
 	return myServer
 }
-
-// func startRegisterChannel(myServer *MyChatServer) {
-// 	for connection := range myServer.register {
-// 		myServer.clients[connection.conn] = connection.name
-// 		fmt.Printf("Started new web socket connection %v! Total connections : %v \n\n", connection.name, len(myServer.clients))
-// 	}
-// }
 
 func startUnregisterChannel(myServer *MyChatServer) {
 	for conn := range myServer.unregister {
@@ -51,9 +44,8 @@ func startUnregisterChannel(myServer *MyChatServer) {
 }
 
 func (s *MyChatServer) Read(conn Connection) {
-	wbConnection := conn.GetConn()
+	wbConnection := conn.Conn()
 	for {
-		//var messageJSON MessageJSON
 		messageJSON, err := conn.Read()
 		if err != nil {
 			log.Printf("error while parsing json message: %v", err)
@@ -95,8 +87,8 @@ func (s *MyChatServer) Write() {
 
 }
 
-//GetMessagesChan retrieves the messages chan
-func (s *MyChatServer) GetMessagesChan() chan *MessageJSON {
+//Messages retrieves the messages chan
+func (s *MyChatServer) Messages() chan *MessageJSON {
 	return s.messages
 }
 
@@ -104,8 +96,3 @@ func (s *MyChatServer) GetMessagesChan() chan *MessageJSON {
 func (s *MyChatServer) GetClients() map[*websocket.Conn]string {
 	return s.clients
 }
-
-//Register function adds the connection to the chat server
-// func (s *MyChatServer) Register(connection *Connection) {
-// 	s.register <- connection
-// }

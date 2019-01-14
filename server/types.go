@@ -6,26 +6,24 @@ import "github.com/gorilla/websocket"
 type Server interface {
 	Read(Connection)
 	Write()
-	GetMessagesChan() chan *MessageJSON
-	GetClients() map[*websocket.Conn]string
-	//Register(*Connection)
+	Messages() chan *MessageJSON
 }
 
 //MyChatServer is an implementation of the chat server interface
 type MyChatServer struct {
-	clients  map[*websocket.Conn]string
-	messages chan *MessageJSON
-	//register   chan *Connection
+	clients    map[*websocket.Conn]string
+	messages   chan *MessageJSON
 	unregister chan *websocket.Conn
 	clientNum  int
 }
 
+//Connection is the interface for handling web socket connections
 type Connection interface {
-	GetConn() *websocket.Conn
 	Read() (*MessageJSON, error)
+	Conn() *websocket.Conn
 }
 
-//ConnectionStruct is used for handling the various web socket connections
+//ConnectionStruct is the implementation for handling the various web socket connections
 type ConnectionStruct struct {
 	name string
 	conn *websocket.Conn
@@ -33,7 +31,7 @@ type ConnectionStruct struct {
 
 //MessageJSON is the core component of all messages being passed around in the chat server
 type MessageJSON struct {
-	MsgType string `json:"type"`
-	Sender  string `json:"sender"`
-	Message string `json:"message"`
+	MsgType messageType `json:"type"`
+	Sender  string      `json:"sender"`
+	Message string      `json:"message"`
 }
