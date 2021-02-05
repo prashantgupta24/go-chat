@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chat/src/server"
+	"github.com/go-chat/server"
 )
 
 var addr = flag.String("addr", ":8000", "http service address")
